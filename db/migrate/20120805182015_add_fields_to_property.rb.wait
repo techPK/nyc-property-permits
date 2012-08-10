@@ -1,0 +1,13 @@
+class AddFieldsToProperty < ActiveRecord::Migration
+  def change
+    add_column :properties, :bin_number, :string
+    add_column :properties, :community_board_number, :string
+    add_column :properties, :job_number, :string
+    add_column :properties, :property_block_number, :string
+    add_column :properties, :property_lot_number, :string
+    add_column :properties, :permit_sequence_number, :string
+    add_column :properties, :permittees_license_number, :string
+    add_column :properties, :applicant_license_number, :string
+    add_column :properties, :job_document_number, :string
+  end
+end

@@ -1,0 +1,172 @@
+# This file should contain all the record creation needed to seed the database with its default values.
+# The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
+#
+# Examples:
+#
+#   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
+#   Mayor.create(name: 'Emanuel', city: cities.first)
+
+#------------------------------------
+  def save_xref(subsitute_text, raw_text_array)
+    title_xref = Hash.new
+    raw_text_array.each do |raw_text|
+      title_xref[:computed_key] = raw_text.to_s.delete("'").strip.squeeze(' ').downcase
+      title_xref[:subsitute_key] = subsitute_text.to_s.delete("'").strip.squeeze(' ')
+      xref_title = XrefTitles.create(title_xref) if title_xref[:computed_key] != title_xref[:subsitute_key]
+      if xref_title.nil?
+        puts "Could not save #{title_xref.inspect}"
+      end
+    end
+  end
+#------------------------------------
+  puts "START [db:seed]"
+  XrefTitles.delete_all
+ # Property
+  save_xref("bin_integer",['Bin #'])
+  save_xref("building_kind_integer",['Bldg Type', 'Building Type'])
+  save_xref("property_block_integer",['Block'])
+  save_xref("borough",['Borough'])
+  save_xref("owners_city_state_zip",['City, State, Zip'])
+  save_xref("community_board_integer",['Community Board', 'Community - Board', "comm- board"])
+  save_xref("property_house_number",['House # '])
+  save_xref("property_lot_integer",['Lot'])
+  save_xref("owners_business_name",["Owner's Business Name"])
+  save_xref("owners_business_type",["Owner's Business Type",'Owner Type'])
+  save_xref("owners_first_and_last_name",["Owner's First & Last Name",	"Owner's Name"])
+  save_xref("owners_house_street",["Owner's House Street"])
+  save_xref("owners_phone_number",["Owner's Phone #"])
+  save_xref("special_district_name_0",['Special Dist Name'])
+  save_xref("special_district_name_1",['Special Distr 1', 'Special District 1'])
+  save_xref("special_district_name_2",['Special Distr 2 ', 'Special District 2'])
+  save_xref("property_street_name",['Street Name'])
+  save_xref("property_zip_code",['Zip Code'])
+
+  # Permit                       
+  save_xref("acts_as_superintendent_boolean",['Acts As Superintendent '])
+  save_xref("expiration_date",['Expiration Date'])
+  save_xref("filing_date",['Filing Date'])
+  save_xref("filing_status",['Filing Status'])
+  save_xref("home_improvement_contractor_license",['HIC License'])
+  save_xref("issuance_date",['Issuance Date'])
+  save_xref("job_document_number",['Job doc. #'])
+  save_xref("job_integer",['Job #'])
+  save_xref("job_start_date",['Job Start Date'])
+  save_xref("job_kind",['Job Type'])
+  save_xref("non_profit_boolean",['Non-Profit'])
+  save_xref("oil_gas",['Oil Gas'])
+  save_xref("permit_sequence_integer",['Permit Sequence #'])
+  save_xref("permit_status",['Permit Status'])
+  save_xref("permit_subtype",['Permit Subtype'])
+  save_xref("permittees_business_name",["Permittee's Business Name"])
+  save_xref("permittees_first_and_last_name",["Permittee's First & Last Name"])
+  save_xref("permittees_license_integer",["Permittee's License #"])
+  save_xref("permittees_license_kind",["Permittee's License Type"])
+  save_xref("permittees_other_title",["Permittee's Other Title"])
+  save_xref("permittees_phone_number",["Permittee's Phone #"])
+  save_xref("permit_kind",['Permit Type'])
+  save_xref("residential_boolean",['Residential'])
+  save_xref("self_cert_boolean", ['Self-Cert'])
+  save_xref("site_fill",['Site Fill'])
+  save_xref("site_safety_manager_business_name", ['Site Safety Mgr Business Name'])
+  save_xref("site_safety_managers_name",["Site Safety Mgr's Name"])
+  save_xref("superintendent_business_name",['Superintendent Business Name'])
+  save_xref("superintendent_first_and_last_name",['Superintendent First & Last Name'])
+  save_xref("work_kind", ['Work Type'])
+
+# PropertyDetail
+
+  save_xref("city_owned_boolean",['City Owned'])
+  save_xref("other_boolean",['Other'])
+  save_xref("professional_certification_boolean",['Professional Cert'])
+  save_xref("approved_date",['Approved'])
+  save_xref("assigned_date",['Assigned'])
+  save_xref("first_permit_date",['First Permit Date'])
+  save_xref("fully_filed_date",['Fully Filed'])
+  save_xref("fully_paid_date",['Fully Paid'])
+  save_xref("fully_permitted_date",['Fully Permitted'])
+  save_xref("latest_action_date",['Latest Action Date'])
+  save_xref("paid_date",['Paid'])
+  save_xref("plan_assigned_date",['Plan Assigned Date'])
+  save_xref("pre_filing_date",['Pre- Filing Date'])
+  save_xref("initial_cost_decimal",['Initial Cost'])
+  save_xref("total_estimated_fee_decimal",['Total Est. Fee'])	
+  save_xref("applicant_license_integer",['Applicant License #', 'App. License #'])
+  save_xref("job_document_integer",['Doc #'])
+  save_xref("job_integer",['Job #'])
+  save_xref("applicant_first_and_last_name",['Applicant First/Last Name'])
+  save_xref("applicant_professional_title",['Applicant Professional Title', 'App. Pro. Title'])
+  save_xref("applicants_first_and_last_name", ["Applicant's First/Last Name"])
+  save_xref("fee_status",['Fee Status'])
+  save_xref("job_status",['Job Status'])	
+  save_xref("job_status_description",["job status descrp"])
+  #*save_xref("job_type",['Job Type'])
+  save_xref("zoning_district_1",['Zoning Dist1', 'Zoning Distr 1'])
+  save_xref("zoning_district_2",['Zoning Dist2', 'Zoning Distr 2'])
+  save_xref("zoning_district_3",['Zoning Dist3', 'Zoning Distr 3'])
+  save_xref("job_description",['Job Description', 'Job Description 1'])
+  save_xref("other_description",['Other Description'])
+    
+# MorePropertyDetail
+
+
+  save_xref("adjacent_to_arterial_highway_boolean", ['Adjacent to Arterial Highway'])
+  save_xref("adult_establishment_boolean", ['Adult Estab'])
+  save_xref("boiler_boolean", ['Boiler'])
+  save_xref("cluster", ['Cluster '])
+  save_xref("curb_cut_boolean", ['Curb Cut'])
+  save_xref("efiling_filed_boolean", ['eFiling Filed'])
+  save_xref("enlargement_square_footage_integer", ['Enlargement SQ Footage'])
+  save_xref("equipment_boolean", ['Equipment'])
+  save_xref("existing_dwelling_units_integer", ['Existing Dwelling Units'])
+  save_xref("existing_dwelling_units_integer", ['Dwelling Units'])
+  save_xref("existing_height_integer", ['Existing Height'])
+  save_xref("existing_height_integer", ['Height'])
+  save_xref("existing_number_of_stories_integer", ['ExistingNo. of Stories'])
+  save_xref("existing_number_of_stories_integer", ['No. of Stories'])
+  save_xref("existing_occupancy", ['Existing Occupancy'])
+  save_xref("existing_zoning_square_footage_integer", ['Existing Zoning Sqft'])
+  save_xref("fire_alarm_boolean", ['Fire Alarm'])
+  save_xref("fire_suppression_boolean", ['Fire Suppression'])
+  save_xref("fuel_burning_boolean", ['Fuel Burning'])
+  save_xref("fuel_storage_boolean", ['Fuel Storage'])
+  save_xref("horizontal_enlargement_boolean", ['Horizontal Enlrgmt'])
+  save_xref("inside_building_line_boolean", ['Inside Building Line'])
+  save_xref("landmarked_boolean", ['Landmarked'])
+  save_xref("little_e", ['Little e'])
+  save_xref("loft_board_boolean", ['Loft Board'])
+  save_xref("mechanical_boolean", ['Mechanical'])
+  save_xref("pc_filed", ['PC Filed'])
+  save_xref("plumbing_boolean", ['Plumbing'])
+  save_xref("proposed_dwelling_units_integer", ['Proposed Dwelling Units'])
+  save_xref("proposed_height_integer", ['Proposed Height'])
+  save_xref("proposed_number_of_stories_integer", ['Proposed No. of Stories'])
+  save_xref("proposed_occupancy", ['Proposed Occupancy'])
+  save_xref("proposed_zoning_square_footage_integer", ['Proposed Zoning Sqft'])
+  save_xref("sign_advertising", ['Sign Advertising'])
+  save_xref("sign_changeable_copy_boolean", ['Sign Changeable Copy'])
+  save_xref("sign_const_kind", ['Sign Const Type'])
+  save_xref("sign_distance_from_highway", ['Sign Dist from Highway '])
+  save_xref("sign_distance_from_park_integer", ['Sign Dist from Park'])
+  save_xref("sign_height_curb_integer", ['Sign Height Curb'])
+  save_xref("sign_height_roof_integer", ['Sign Height Roof'])
+  save_xref("sign_illumination_boolean", ['Sign Illumination'])
+  save_xref("sign_illumination_kind", ['Sign Illumination Type'])
+  save_xref("sign_kind", ['Sign Type'])
+  save_xref("sign_near_highway_boolean", ['Sign Near Highway '])
+  save_xref("sign_near_park_boolean", ['Sign Near Park '])
+  save_xref("sign_non_conforming", ['Sign Non-Conforming'])
+  save_xref("sign_outdoor_advertising_company_number", ['Sign OAC No.'])
+  save_xref("sign_outdoor_advertising_company_registration", ['Sign OAC Registration'])
+  save_xref("sign_projection_integer", ['Sign Projection'])
+  save_xref("sign_square_footage_integer", ['Sign SQ Footage'])
+  save_xref("sign_usage", ['Usage'])
+  save_xref("sign_weight_integer", ['Sign Weight'])
+  save_xref("sprinkler_boolean", ['Sprinkler'])
+  save_xref("standpipe_boolean", ['Standpipe'])
+  save_xref("street_frontage_integer", ['Street Frontage'])
+  save_xref("text_on_sign", ['Text on Sign'])
+  save_xref("vertical_enlargement_boolean", ['Vertical Enlrgmt'])
+		
+ puts "XrefTitles has #{XrefTitles.count} records."
+
+

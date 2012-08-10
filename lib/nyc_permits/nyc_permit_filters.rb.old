@@ -1,0 +1,111 @@
+def extract_property_data(excel_data_row_hash, date_base, broadway_only=nil)
+  property_data = {}
+  excel_data_row_hash.each do |key,value|
+    case key
+      when :bin_number
+        property_data[key] = value.to_i unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :borough
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :building_kind
+        property_data[key] = value.to_i unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :community_board
+        property_data[key] = value.to_i unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_business_name
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_business_type
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_city_state_zip
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_first_and_last_name
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_house_street
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :owners_phone_number
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :property_block_number
+        property_data[key] = value.to_i unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :property_lot_number
+        property_data[key] = value.to_i unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :property_house_number
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :property_street_name
+        if value.present?
+          if broadway_only.present? && !value.downcase.rindex('broadway').nil?
+            property_data[:broadway] = true
+          end
+          property_data[key] = value unless value.blank?
+          excel_data_row_hash.delete(key)
+        end
+      when :property_zip_code
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :special_district_name_0
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :special_district_name_1
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      when :special_district_name_2
+        property_data[key] = value unless value.blank?
+        excel_data_row_hash.delete(key)
+      end
+    end
+  end
+  if broadway_only.present? && property_data[:broadway].blank?
+    return nil
+  end
+  
+  property_search = {}
+  property_search_fields = [:bin_number,:borough, :property_block_number,
+  :property_lot_number, :property_house_number,:property_street_name]
+  
+  property_search_fields.each do |key|
+    property_search[key] = property_data[key] if property_data.has_key?(key)
+  end
+  
+  property_data_for_initializing = {}
+  property_non_search_fields = [:building_kind, :community_board, 
+    :owners_business_name, :owners_business_type, :owners_city_state_zip, 
+    :owners_first_and_last_name, :owners_house_street,
+    :owners_phone_number, :property_zip_code, 
+    :special_district_name_0, :special_district_name_1,
+    :special_district_name_2]
+    
+   property_non_search_fields.each do |key|
+    property_data_for_initializing[key] = property_data[key] if property_data.has_key?(key)
+  end    
+  property_data_for_creating[:date_base] = date_base
+  
+  #need to get most recent Property record first
+  property = Property.where(property_search).order("date_base DESC").first_or_create(property_data_for_creating)
+  
+  property_non_search_fields.each do |key|
+    if property[key] != property_data_for_creating[key]
+      property = Property.create(property_data)
+      if property.nil?
+        puts "property_data failed to save = #{property_data.inspect}"
+      end
+      return property
+    end
+  end
+  property
+end
+
+##########-------------------------------------
+
+
+
+

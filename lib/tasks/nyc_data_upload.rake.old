@@ -1,0 +1,258 @@
+# lib/tasks/nyc_data_upload.rake
+
+namespace :excel_data do
+   #----------------------------------------------------
+  desc "Upload NYC excel spreadsheet data"
+  task :upload, [:clean, :broadway] => :environment do |t, args|
+    args.with_defaults(clean:nil, broadway:nil)
+    require 'roo'
+    if args[:clean].present?
+      PermitDetail.delete_all
+      Permit.delete_all
+      Property.delete_all
+      NycGovExcelWebfile.where(processed:true).update_all processed:nil
+    end
+    
+    puts "NycGovExcelWebfile unprocessed #{NycGovExcelWebfile.where(processed:true).count} of #{NycGovExcelWebfile.count}"
+    
+    if args[:broadway].present?
+      puts "*** Broadway Mode ***"
+      broadway_only= true
+    else
+      broadway_only= nil
+    end    
+      
+    # get unprocessed excel url name
+    puts "rook 001" # testing
+    titles = Hash.new
+    data_row = Hash.new 
+    excel_files = NycGovExcelWebfile.where(processed:nil).order("date_base ASC, type DESC")
+    excel_files_ct = 0
+    excel_files.each do |unprocessed|
+      puts "rook 010: #{unprocessed.full_url}" # testing
+      spreadsheet = Excel.new(unprocessed.full_url)
+      titles.clear
+      spreadsheet.last_row.times do |row| 
+        data_row.clear
+        if row == 3
+          spreadsheet.last_column.times do |column|
+            if spreadsheet.cell(row,column).present?
+              title = spreadsheet.cell(row,column).to_s.delete("'").strip.squeeze(' ').downcase.to_sym
+              xref_title = XrefTitles.where("computed_key = '#{title}'").first
+              title = xref_title.subsitute_key.to_sym if xref_title.present?
+              titles[title] =  column 
+            end
+          end
+        end
+
+        if row > 3 # get column values from each row
+ puts "titles.class = #{titles.class} [#{row},#{column}]" if titles.nil?  # testing     
+          titles.each do |title, column|
+            if spreadsheet.cell(row,column).present?
+              case spreadsheet.celltype(row,column)
+                when :string
+                  data_row[title] = spreadsheet.cell(row,column).strip.squeeze(' ')
+                when :float
+                  data_row[title] = spreadsheet.cell(row,column) unless spreadsheet.cell(row,column).zero?
+                else
+                  data_row[title] = spreadsheet.cell(row,column)
+              end
+              data_row[:date_base] = unprocessed.date_base
+              data_row[:source] = unprocessed.type          
+            end 
+          end
+          saved_count = process_property_and_permit_data(data_row,broadway_only)  ###> Testing
+        end      
+      end
+    spreadsheet.remove_tmp
+    unprocessed.processed = true
+    unprocessed.save
+    excel_files_ct += 1
+    abort("testing too much") if excel_files_ct > 3 ###> Testing 
+    end
+        puts "excel_files_ct == #{excel_files_ct}"
+        puts "rook DONE!! saved_count = #{saved_count}" # testing
+  end 
+
+#----------------------------------------------------
+  def process_property_and_permit_data(excel_data_row_hash, broadway_only=nil)
+    
+    test_skip = true # testing 
+    
+    saved_count = 0
+    
+    property_key_fields = [:bin_integer,:borough, 
+    :property_block_integer, :property_lot_integer, 
+    :property_house_number,
+    :property_street_name]
+    
+    property_non_key_fields = [:building_kind_integer, 
+    :community_board_integer, :owners_business_name, 
+    :owners_business_type, :owners_city_state_zip, 
+    :owners_first_and_last_name, :owners_house_street,
+    :owners_phone_number, :property_zip_code, 
+    :special_district_name_0, :special_district_name_1,
+    :special_district_name_2]
+    
+    property_keys = excel_data_row_hash.select{|key,value| property_key_fields.include?(key)} 
+   
+    if broadway_only.present? && property_keys.key?(:property_street_name)
+      street_value = property_keys[:property_street_name]
+      if street_value.downcase.rindex('broadway').present?
+        broadway_found = true
+        excel_data_row_hash[:broadway_test]=true
+         puts "rook 025 : #{street_value} in #{property_keys[:borough]}" # testing
+      else
+        broadway_found = false
+        return nil
+      end
+    end
+     
+    property_non_keys = excel_data_row_hash.select{|key,value| property_non_key_fields.include?(key)}
+    
+    #need to get most recent Property record first
+    property = Property.where(property_keys).order("date_base DESC").first_or_create(property_non_keys)
+    #if retrieved record is not equal to current info, create new record.
+    
+    property_data_non_keys = property.attributes.select{|key,value| property_non_key_fields.include?(key) }
+    if  property_data_non_keys != property_non_keys
+      property = Property.create(property_keys.merge(property_non_keys))
+      saved_count += 1
+      if property.nil?
+        puts "property_data failed to save = #{property_keys.concat(property_non_keys).inspect}"
+      end
+    end
+    
+    saved_count += process_permit(property, property_key_fields, excel_data_row_hash, broadway_only)
+  end
+
+  ##########-------------------------------------
+  def process_permit(property, property_key_fields, excel_data_row_hash, broadway_only=nil)
+    test_skip = true # testing 
+    puts "rook 030 : process_permit #{excel_data_row_hash[:source]}" if test_skip # testing 
+    
+    saved_count = 0
+    
+    permit_fields = [
+      :acts_as_superintendent_boolean,
+      :expiration_date,
+      :filing_date,
+      :filing_status,
+      :home_improvement_contractor_license,
+      :issuance_date,
+      :job_document_number,
+      :job_integer,
+      :job_start_date,
+      :job_kind,
+      :non_profit_boolean,
+      :oil_gas,
+      :permit_sequence_integer,
+      :permit_status,
+      :permit_subtype,
+      :permittees_business_name,
+      :permittees_first_and_last_name,
+      :permittees_license_integer,
+      :permittees_license_kind,
+      :permittees_other_title,
+      :permittees_phone_number,
+      :permit_kind,
+      :residential_boolean,
+      :self_cert_boolean,
+      :site_fill,
+      :site_safety_manager_business_name,
+      :site_safety_managers_name,
+      :superintendent_business_name,
+      :superintendent_first_and_last_name,
+      :work_kind, 
+      :date_base,
+      :source
+      ]
+  
+    permit_detail_fields = [
+      :city_owned_boolean,
+      :other_boolean,
+      :professional_certification_boolean,
+      :approved_date, #Date
+      :assigned_date, #Date
+      :first_permit_date, #Date
+      :fully_filed_date, #Date
+      :fully_paid_date, #Date
+      :fully_permitted_date, #Date
+      :latest_action_date, #Date
+      :paid_date, #Date
+      :plan_assigned_date, #Date
+      :pre_filing_date, #Date
+      :initial_cost_decimal,
+      :total_estimated_fee_decimal,
+      :applicant_license_integer,
+      :job_document_integer,
+      :job_integer,
+      :applicant_first_and_last_name,
+      :applicant_professional_title,
+      :applicants_first_and_last_name,
+      :fee_status,
+      :job_status,
+      :job_kind,
+      :zoning_district_1,
+      :zoning_district_2,
+      :zoning_district_3,
+      :job_description,
+      :other_description,
+      :bin_integer,
+      :borough,
+      :community_board_integer,
+      :property_block_integer,
+      :property_lot_integer,
+      :property_house_number,
+      :property_street_name,
+      :property_zip_code, 
+      :date_base,
+      :source
+      ]
+
+    permit_non_key_fields = excel_data_row_hash[:source].index("PermitExcelWebfile") ? permit_fields : permit_detail_fields
+          
+    permit_fields = property_key_fields + permit_non_key_fields # two arrays added together
+    permit_data = excel_data_row_hash.select {|key,value| permit_fields.include?(key) }
+    
+    if broadway_only.present? && excel_data_row_hash.key?(:permit_street_name)
+      street_value = excel_data_row_hash[:permit_street_name]
+      if  street_value.downcase.rindex('broadway').present?
+        broadway_found = true
+         puts "rook 035 : Broadway" # testing
+      else
+        broadway_found = false
+        return nil
+      end
+    end
+        
+   # HStore requires all data to be text. Make it so...
+    
+      overflow_data = excel_data_row_hash.reject{|key,value| permit_data.key?(key)}
+      permit_data[:spreadsheet_overflow_data]=Hash.new
+      overflow_data.each do |key,value|
+        permit_data[:spreadsheet_overflow_data][key.to_s] = value.to_s
+      end
+    
+  #  puts "permit_data == #{permit_data}"  # testing
+    
+    permit_data.each do |key,value|
+      if key.to_s.rindex('_date',-5).present?
+        if !value.is_a?(Date)
+          puts "#{key}:'#{value}' is not a Date"
+          permit_data.delete(key)
+        end
+      end
+    end
+    
+      permit = excel_data_row_hash[:source].index("PermitExcelWebfile") ? property.permit.create(permit_data) :  property.permit_detail.create(permit_data)
+      saved_count += 1
+    if permit.nil?
+      puts "***permit_data failed to save***"
+      puts "permit_data failed to save = #{permit_data.inspect}"
+    end
+    saved_count
+  end
+
+  ##########------------------------------------- 
+end 
