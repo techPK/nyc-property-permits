@@ -1,4 +1,14 @@
 NycPermits::Application.routes.draw do
+  get "notices/home"
+
+  get "notices/about"
+
+  get "notices/contact"
+
+  get "notices/terms"
+
+  get "notices/technology"
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

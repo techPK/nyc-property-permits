@@ -15,7 +15,8 @@ gem 'devise' #login authentication
 gem 'cancan' #role-based user authorization
 # Read & parse spreedsheets
 gem 'roo'
-
+# Give Haml support in all environments
+gem 'haml'
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
@@ -51,6 +52,8 @@ gem 'jquery-rails'
 
 group :development do
   gem 'haml-rails'
+  gem 'hpricot'
+  gem 'ruby_parser'
 end
 
 group :test do
