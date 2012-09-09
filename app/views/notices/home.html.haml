@@ -1,17 +1,13 @@
 -provide(:title, "Home")
-%h1 Home Page:
-%p
-%p Welcome to NYC Property Permit Infomation Website!
-%p If you are a NY Licensed Real Estate Agent or Broker, consider becoming our member to enhance your services to your customers.
+
+#welcome.center.hero-unit
+  %h1 Welcome!
+  = link_to "Enter as a Member", '#', class: "btn btn-large btn-primary" 
+  = link_to "Enter as a Guest", '#', class: "btn btn-large btn-primary" 
+  %p
+  %p If you are a NY Licensed Real Estate Agent or Broker, consider becoming our member to enhance your services to your customers.
+
+  %p If you are a NYC Property Owner, consider becoming our member to receive service offers from professional and licensed contractors.
 
 %p
-  %h2 Menu...
-  %ul
-    %li
-      %a{href:notices_about_path} About us
-    %li
-      %a{href:notices_contact_path} Contact us
-    %li
-      %a{href:notices_technology_path} Technology used
-    %li
-      %a{href:notices_terms_path} Terms and Conditions of use
+

@@ -1,9 +1,30 @@
 !!!
-%html
+%html{lang:"en"}
   %head
-    %title="NYC Property Permit Infomation | "+yield(:title)
+    %title="NYC Property Permit Information | #{yield(:title)}"
     = stylesheet_link_tag    "application", :media => "all"
     = javascript_include_tag "application"
     = csrf_meta_tags
+    <!--[if lt IE 9]>
+    %script{src:"http://html5shim.googlecode.com/svn/trunk/html5.js"}
+    <![endif]-->
+
   %body
-    = yield
+    %header.navbar.navbar-fixed-top
+      .navbar-inner
+        = link_to "Koyinsho", 'http://koyinsho.com/', title:"Koyinsho.com (home)",class:"brand"
+        .container
+          %nav
+            %ul.nav.pull-left
+              %li{class:"#{'active' unless ['Licensees','Owners'].include?(yield(:title))}"}= link_to "NYC Permits", notices_home_path,title:"NYC Property Permits (home)"
+              %li{class:"#{'active' if yield(:title) == "Licensees"}"}= link_to "Licensees", '#', title:"Find Licensed Contractors"
+              %li{class:"#{'active' if yield(:title) == "Owners"}"}= link_to "Owners", '#', title:"Find Property Owners"
+            %ul.nav.pull-right
+              %li= link_to "Sign-in", '#', title:"Member sign-in (prompt)"
+              %li.divider-vertical
+              %li{class:"#{'active' if yield(:title) == "About"}"}= link_to "About", notices_about_path, title:"About us"
+              %li{class:"#{'active' if yield(:title) == "Contact"}"}= link_to "Contact",notices_contact_path, title:"Contact us"
+              %li{class:"#{'active' if yield(:title) == "Technology"}"}= link_to "Technology", notices_technology_path, title:"Technology used"
+              %li{class:"#{'active' if yield(:title) == "Terms"}"}= link_to "Terms", notices_terms_path, title:"Terms, Privacy, and Conditions of use"
+    .container= yield
+          
