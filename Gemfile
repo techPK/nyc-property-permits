@@ -51,11 +51,11 @@ gem 'jquery-rails'
 # To use debugger
 # gem 'debugger'
 
-group :development do
+# group :development do
   gem 'haml-rails'
   gem 'hpricot'
   gem 'ruby_parser'
-end
+# end
 
 group :test do
   gem 'factory_girl_rails', :require => false
