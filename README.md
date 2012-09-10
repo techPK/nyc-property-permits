@@ -4,3 +4,4 @@ This is an application for allowing NYC Real Estate Agents and other interested 
 
 This application was solely concieved and coded by Percy Keeley of Software Forest.
 
+You can visit a Heroku hosted version of this application at http://desolate-fortress-2319.herokuapp.com/notices/home 
